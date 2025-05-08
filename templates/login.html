@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบ - ระบบประเมินการออกเสียงภาษาอังกฤษ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <nav class="top-nav">
+                <div class="language-switch">
+                    <button id="langTH" class="lang-btn active">TH</button>
+                    <button id="langEN" class="lang-btn">EN</button>
+                </div>
+            </nav>
+            <h1>
+                <span class="lang-th">ระบบประเมินการออกเสียงภาษาอังกฤษสำหรับผู้เรียนชาวไทย</span>
+                <span class="lang-en">Thai EFL Learners' English Pronunciation Assessment</span>
+            </h1>
+            <p class="header-subtitle">
+                <span class="lang-th">Thai EFL learners' English Pronunciation Assessment</span>
+                <span class="lang-en">English Pronunciation Assessment System for Thai Learners</span>
+            </p>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="login-container">
+            <div class="login-form-box">
+                <h2>
+                    <span class="lang-th">เข้าสู่ระบบ</span>
+                    <span class="lang-en">Login</span>
+                </h2>
+                
+                <form id="loginForm" class="login-form" action="/login" method="post">
+                    <div class="form-group">
+                        <label for="username">
+                            <span class="lang-th">ชื่อผู้ใช้</span>
+                            <span class="lang-en">Username</span>
+                        </label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">
+                            <span class="lang-th">รหัสผ่าน</span>
+                            <span class="lang-en">Password</span>
+                        </label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    
+                    <div class="login-buttons">
+                        <button type="submit" class="login-button">
+                            <span class="lang-th">เข้าสู่ระบบ</span>
+                            <span class="lang-en">Login</span>
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="register-link">
+                    <p>
+                        <span class="lang-th">ยังไม่มีบัญชี?</span>
+                        <span class="lang-en">Don't have an account?</span>
+                        <a href="/register">
+                            <span class="lang-th">ลงทะเบียน</span>
+                            <span class="lang-en">Register</span>
+                        </a>
+                    </p>
+                </div>
+            </div>
+            
+            <div class="login-info">
+                <h3>
+                    <span class="lang-th">ประเมินการออกเสียงภาษาอังกฤษ</span>
+                    <span class="lang-en">English Pronunciation Assessment</span>
+                </h3>
+                <p>
+                    <span class="lang-th">เข้าสู่ระบบเพื่อใช้งานระบบประเมินการออกเสียงภาษาอังกฤษสำหรับผู้เรียนชาวไทย</span>
+                    <span class="lang-en">Login to use the English Pronunciation Assessment System for Thai Learners</span>
+                </p>
+                <div class="login-features">
+                    <div class="feature">
+                        <i class="fas fa-microphone-alt"></i>
+                        <span class="lang-th">วิเคราะห์การออกเสียง</span>
+                        <span class="lang-en">Analyze pronunciation</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-chart-bar"></i>
+                        <span class="lang-th">ดูผลการประเมิน</span>
+                        <span class="lang-en">View assessment results</span>
+                    </div>
+                    <div class="feature">
+                        <i class="fas fa-history"></i>
+                        <span class="lang-th">ติดตามความก้าวหน้า</span>
+                        <span class="lang-en">Track progress</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer class="container">
+        <div class="footer-content">
+            <p>
+                <span class="lang-th">© 2025 ระบบประเมินการออกเสียงภาษาอังกฤษสำหรับผู้เรียนชาวไทย</span>
+                <span class="lang-en">© 2025 Thai EFL Learners' English Pronunciation Assessment System</span>
+            </p>
+            <div class="footer-waves">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
+                    <path fill="rgba(67, 97, 238, 0.05)" fill-opacity="1" d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,218.7C672,203,768,149,864,117.3C960,85,1056,75,1152,90.7C1248,107,1344,149,1392,170.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                    <path fill="rgba(114, 9, 183, 0.05)" fill-opacity="1" d="M0,64L48,96C96,128,192,192,288,202.7C384,213,480,171,576,165.3C672,160,768,192,864,218.7C960,245,1056,267,1152,261.3C1248,256,1344,224,1392,208L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                </svg>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="{{ url_for('static', filename='js/language.js') }}"></script>
+</body>
+</html>
