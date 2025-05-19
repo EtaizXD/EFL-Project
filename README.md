@@ -181,8 +181,7 @@ pronunciation-assessment/
 
 หากมีคำถามหรือต้องการความช่วยเหลือ กรุณาติดต่อ:
 
-- อีเมล: pronunciation.assessment@example.com
-- โทรศัพท์: +66 XXXX XXXX
+- อีเมล: ksinwong@gmail.com
 
 ## ลิขสิทธิ์และการใช้งาน
 
