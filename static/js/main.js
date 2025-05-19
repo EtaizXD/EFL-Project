@@ -184,15 +184,15 @@ document.addEventListener('DOMContentLoaded', function() {
         return files.map(file => {
             // สร้างความน่าจะเป็นแบบสุ่มสำหรับแต่ละคลาส
             const highProb = Math.random() * 0.6;
-            const mediumProb = Math.random() * (0.8 - highProb);
-            const lowProb = 1 - highProb - mediumProb;
+            const midProb = Math.random() * (0.8 - highProb);
+            const lowProb = 1 - highProb - midProb;
             
             // กำหนดคลาสที่ทำนายตามความน่าจะเป็นสูงสุด
             let predictedClass;
-            if (highProb >= mediumProb && highProb >= lowProb) {
+            if (highProb >= midProb && highProb >= lowProb) {
                 predictedClass = 'High';
-            } else if (mediumProb >= highProb && mediumProb >= lowProb) {
-                predictedClass = 'Medium';
+            } else if (midProb >= highProb && midProb >= lowProb) {
+                predictedClass = 'Mid';
             } else {
                 predictedClass = 'Low';
             }
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 predicted_class: predictedClass,
                 probabilities: {
                     High: highProb,
-                    Medium: mediumProb,
+                    Medium: midProb,
                     Low: lowProb
                 }
             };
@@ -216,11 +216,28 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("Raw results from API:", rawResults);
         
         // Process the results to standardize format - ไม่จำเป็นต้องแปลง Medium เป็น Mid แล้ว
+        // แปลง results และแก้ไขคำว่า 'Medium' เป็น 'Mid'
         const results = rawResults.map(result => {
+            // แปลง predictedClass
+            let predictedClass = result.predicted_class;
+            if (predictedClass === 'Medium') {
+                predictedClass = 'Mid';
+            }
+            
+            // แปลง probabilities
+            const probabilities = {};
+            Object.keys(result.probabilities).forEach(key => {
+                if (key === 'Medium') {
+                    probabilities['Mid'] = result.probabilities[key];
+                } else {
+                    probabilities[key] = result.probabilities[key];
+                }
+            });
+            
             return {
                 fileName: result.file_name,
-                predictedClass: result.predicted_class,
-                probabilities: result.probabilities  // ใช้ค่าจาก API โดยตรง
+                predictedClass: predictedClass,
+                probabilities: probabilities
             };
         });
         
@@ -283,6 +300,12 @@ document.addEventListener('DOMContentLoaded', function() {
             Object.keys(result.probabilities).forEach(cls => {
                 const label = document.createElement('span');
                 const probability = result.probabilities[cls] * 100;
+
+                // แปลงชื่อที่แสดงจาก 'Medium' เป็น 'Mid'
+                let displayClass = cls;
+                if (cls === 'Medium') {
+                    displayClass = 'Mid';
+                }
                 label.textContent = `${cls}: ${probability.toFixed(1)}%`;
                 probLabels.appendChild(label);
             });
@@ -335,13 +358,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const statItem = document.createElement('div');
         statItem.className = 'summary-item';
         
+        // เพิ่มคลาสตามประเภทของรายการ
+        if (label === 'Total Files' || label === 'จำนวนไฟล์ทั้งหมด') {
+            statItem.classList.add('total-item');
+        } else if (label === 'High Level' || label === 'ระดับสูง') {
+            statItem.classList.add('high-level');
+        } else if (label === 'Mid Level' || label === 'ระดับกลาง') {
+            statItem.classList.add('mid-level');
+        } else if (label === 'Low Level' || label === 'ระดับต่ำ') {
+            statItem.classList.add('low-level');
+        }
+        
         const statTitle = document.createElement('h4');
         statTitle.textContent = label;
         
         const statValue = document.createElement('div');
         statValue.className = 'summary-count';
         statValue.textContent = value;
-        statValue.style.color = color;
+        // ไม่ต้องกำหนดสี เพราะจะใช้สีขาวจาก CSS
         
         const statPercent = document.createElement('span');
         statPercent.className = 'summary-percent';
@@ -361,6 +395,50 @@ document.addEventListener('DOMContentLoaded', function() {
         return statItem;
     }
     
+    /**
+     * ฟังก์ชั่นเพื่อรับป้ายชื่อภาษาไทย
+     */
+    function getThaiLabel(label) {
+        switch(label) {
+            case 'Total Files':
+            case 'จำนวนไฟล์ทั้งหมด':
+                return 'จำนวนไฟล์ทั้งหมด';
+            case 'High Level':
+            case 'ระดับสูง':
+                return 'ระดับสูง';
+            case 'Mid Level':
+            case 'ระดับกลาง':
+                return 'ระดับกลาง';
+            case 'Low Level':
+            case 'ระดับต่ำ':
+                return 'ระดับต่ำ';
+            default:
+                return label;
+        }
+    }
+
+    /**
+     * ฟังก์ชั่นเพื่อรับป้ายชื่อภาษาอังกฤษ
+     */
+    function getEnglishLabel(label) {
+        switch(label) {
+            case 'Total Files':
+            case 'จำนวนไฟล์ทั้งหมด':
+                return 'Total Files';
+            case 'High Level':
+            case 'ระดับสูง':
+                return 'High Level';
+            case 'Mid Level':
+            case 'ระดับกลาง':
+                return 'Mid Level';
+            case 'Low Level':
+            case 'ระดับต่ำ':
+                return 'Low Level';
+            default:
+                return label;
+        }
+    }
+
     // เริ่มต้นสำหรับรีเซ็ตหน้า UI เมื่อโหลดครั้งแรก
     function initializeUI() {
         // ซ่อนส่วนผลลัพธ์และข้อความแจ้งเตือนเมื่อเริ่มต้น

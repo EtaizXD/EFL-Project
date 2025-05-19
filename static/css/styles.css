@@ -66,6 +66,7 @@ body.en .lang-th {
 .language-switch {
     display: flex;
     gap: 5px;
+    z-index: 100; /* เพิ่ม z-index เพื่อให้แน่ใจว่าปุ่มสามารถคลิกได้ */
 }
 
 .lang-btn {
@@ -127,7 +128,7 @@ header::before {
 }
 
 header h1 {
-    font-size: 2.2rem;
+    font-size: 2.0rem;
     margin-bottom: 10px;
     font-weight: 700;
     color: white;
@@ -157,7 +158,7 @@ main {
 
 /* ======= Upload Section ======= */
 .upload-section {
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.8);
     border-radius: 15px;
     padding: 30px;
     margin-bottom: 30px;
@@ -377,7 +378,7 @@ main {
 /* ======= Results Section ======= */
 .results-section {
     display: none;
-    background-color: white;
+    background-color: rgba(255, 255, 255, 0.8);
     border-radius: 15px;
     padding: 30px;
     margin-bottom: 30px;
@@ -505,24 +506,45 @@ main {
 .summary-item {
     flex: 1;
     min-width: 150px;
-    background-color: white;
     border-radius: 10px;
     padding: 15px;
     margin: 5px;
     box-shadow: 0 3px 10px rgba(0,0,0,0.04);
     text-align: center;
+    color: white;
 }
 
-.summary-count {
-    display: block;
-    font-size: 24px;
+/* สไตล์สำหรับแต่ละระดับในส่วนสรุป - เพิ่มใหม่ */
+.summary-item.high-level {
+    background: linear-gradient(135deg, var(--secondary-color), #b5179e);
+}
+
+/* ปรับสไตล์ของข้อความในกล่องสรุป - แทนที่ของเดิม */
+.summary-item h4, .summary-item .summary-count, .summary-item .summary-percent {
+    color: white;  /* แทนที่สีเดิม */
+}
+
+.summary-item.mid-level {
+    background: linear-gradient(135deg, var(--highlight-color), #b5179e);
+}
+
+.summary-item.low-level {
+    background: linear-gradient(135deg, #4cc9f0, #4361ee);
+}
+
+.summary-item.total-item {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.summary-item .summary-count {
+    font-size: 28px;
     font-weight: bold;
     margin: 10px 0;
 }
 
-.summary-percent {
-    color: #666;
+.summary-item .summary-percent {
     font-size: 14px;
+    opacity: 0.9;  /* แทนที่ color: #666; */
 }
 
 /* รองรับคลาสสำหรับแถบความน่าจะเป็นจาก CSS เดิม */
@@ -884,6 +906,29 @@ footer {
     .results-table th, .results-table td {
         padding: 12px;
     }
+
+    .education-tabs {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .tab-btn {
+        width: 100%;
+    }
+    
+    .level-notice {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .sub-list {
+        margin-left: 0;
+    }
+    
+    .developer-list {
+        padding-left: 0;
+    }
 }
 
 /* ======= Download Button Styles ======= */
@@ -1000,4 +1045,180 @@ body.en .results-table thead tr.lang-en {
 
 .probability-mid {
     background: linear-gradient(90deg, #f72585, #b5179e);
+}
+
+/* เพิ่มสไตล์สำหรับแท็บระดับการศึกษา */
+.education-tabs {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.tab-btn {
+    background-color: #f0f2f5;
+    color: var(--gray-color);
+    border: 1px solid var(--light-gray);
+    padding: 10px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.tab-btn:hover {
+    background-color: rgba(67, 97, 238, 0.1);
+    color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.tab-btn.active {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 10px rgba(67, 97, 238, 0.2);
+}
+
+.tab-btn:disabled {
+    background-color: #f0f2f5;
+    color: #aaa;
+    border-color: #ddd;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    opacity: 0.7;
+}
+
+/* สไตล์สำหรับแสดงข้อความแจ้งเตือน */
+.level-notice {
+    background-color: rgba(249, 199, 79, 0.15);
+    border-left: 4px solid var(--warning-color);
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.notice-icon {
+    font-size: 1.5rem;
+    color: var(--warning-color);
+}
+
+/* สไตล์เพิ่มเติมสำหรับหน้า About ใหม่ */
+.developer-list {
+    margin-top: 15px;
+    margin-bottom: 25px;
+}
+
+.developer-item {
+    padding: 10px 0;
+    border-bottom: 1px dashed rgba(67, 97, 238, 0.1);
+}
+
+.developer-item:last-child {
+    border-bottom: none;
+}
+
+.developer-item p {
+    margin: 0;
+    line-height: 1.7;
+}
+
+.developer-item strong {
+    color: var(--primary-color);
+}
+
+.email {
+    display: inline-block;
+    margin-left: 5px;
+    color: var(--gray-color);
+    font-size: 0.9em;
+}
+
+.sub-list {
+    margin-left: 20px;
+}
+
+h3 {
+    color: var(--secondary-color);
+    margin-top: 25px;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+h4 {
+    color: var(--highlight-color);
+    margin-top: 15px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-left: 10px;
+}
+
+.contact-info {
+    margin-top: 20px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.contact-item i {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+    margin-right: 15px;
+    min-width: 20px;
+    margin-top: 4px;
+}
+
+/* เพิ่มคลาสใหม่สำหรับการแสดงผลบรรทัดเดียว */
+.single-line {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* เพิ่มสไตล์ให้กับข้อความสีม่วง */
+.purple-text {
+    color: var(--secondary-color);
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+/* สไตล์สำหรับการแสดงผลแบดจ์ระดับในบรรทัดเดียวกัน */
+.level-badges {
+    display: flex;
+    gap: 20px;
+    margin-top: 15px;
+    justify-content: center;
+}
+
+/* ปรับสไตล์คำแนะนำการอัพโหลด */
+.upload-instruction {
+    color: var(--secondary-color);
+    font-weight: 500;
+    margin-bottom: 20px;
+}
+
+/* จัดการการแสดงผลข้อความในกล่องสรุป */
+.summary-item h4.lang-th, 
+.summary-item h4.lang-en {
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 5px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* ซ่อน/แสดงข้อความตามภาษา */
+body:not(.en) .summary-item h4.lang-en {
+    display: none;
+}
+
+body.en .summary-item h4.lang-th {
+    display: none;
 }

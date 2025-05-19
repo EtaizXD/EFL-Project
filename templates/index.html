@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบประเมินการออกเสียงภาษาอังกฤษสำหรับผู้เรียนชาวไทย</title>
+    <title>ระบบประเมินความชัดเจนทางการออกเสียงของผู้เรียนภาษาอังกฤษชาวไทย</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -21,13 +21,13 @@
                     <li><a href="/logout" class="lang-th">ออกจากระบบ</a><a href="/logout" class="lang-en">Log Out</a></li>
                 </ul>
             </nav>
-            <h1>
-                <span class="lang-th">ระบบประเมินการออกเสียงภาษาอังกฤษสำหรับผู้เรียนชาวไทย</span>
-                <span class="lang-en">Thai EFL Learners' English Pronunciation Assessment</span>
+            <h1 class="single-line">
+                <span class="lang-th">ระบบประเมินความชัดเจนทางการออกเสียงของผู้เรียนภาษาอังกฤษชาวไทย</span>
+                <span class="lang-en">Thai EFL Learners' Prosodic Intelligibility Assessment System</span>
             </h1>
             <p class="header-subtitle">
-                <span class="lang-th">Thai EFL learners' English Pronunciation Assessment</span>
-                <span class="lang-en">English Pronunciation Assessment System for Thai Learners</span>
+                <span class="lang-th">Thai EFL Learners' Prosodic Intelligibility Assessment System</span>
+                <span class="lang-en">Prosodic Intelligibility Assessment System for Thai EFL Learners</span>
             </p>
         </div>
     </header>
@@ -38,10 +38,30 @@
                 <span class="lang-th">อัพโหลดไฟล์เสียง</span>
                 <span class="lang-en">Upload Audio Files</span>
             </h2>
-            <p>
-                <span class="lang-th">อัพโหลดไฟล์เสียงภาษาอังกฤษ 1-10 ไฟล์ เพื่อประเมินระดับการออกเสียง (สูง/กลาง/ต่ำ)</span>
-                <span class="lang-en">Upload 1-10 English audio files to assess pronunciation level (High/Mid/Low)</span>
+            <p class="upload-instruction">
+                <span class="lang-th">อัพโหลดไฟล์เสียงภาษาอังกฤษ 1-10 ไฟล์ เพื่อประเมินระดับการออกเสียง</span>
+                <span class="lang-en">Upload 1-10 English audio files to assess pronunciation level</span>
             </p>
+            
+            <!-- เพิ่ม Tab สำหรับเลือกระดับชั้น -->
+            <div class="education-tabs">
+                <button class="tab-btn" data-level="primary">
+                    <span class="lang-th">ประถมศึกษาปีที่ 6</span>
+                    <span class="lang-en">Primary 6</span>
+                </button>
+                <button class="tab-btn" data-level="middle">
+                    <span class="lang-th">มัธยมศึกษาปีที่ 3</span>
+                    <span class="lang-en">Secondary 3</span>
+                </button>
+                <button class="tab-btn" data-level="high">
+                    <span class="lang-th">มัธยมศึกษาปีที่ 6</span>
+                    <span class="lang-en">Secondary 6</span>
+                </button>
+                <button class="tab-btn active" data-level="university">
+                    <span class="lang-th">มหาวิทยาลัย</span>
+                    <span class="lang-en">University</span>
+                </button>
+            </div>
             
             <div class="file-input-container">
                 <label class="file-input-label">
@@ -83,27 +103,15 @@
                 <span class="lang-en">Pronunciation Assessment Results</span>
             </h2>
             <div class="results-explanation">
-                <p>
-                    <span class="lang-th">ผลการประเมินจะแบ่งออกเป็น 3 ระดับ:</span>
+                <p class="purple-text">
+                    <span class="lang-th">ผลการประเมินแบ่งเป็น 3 ระดับ:</span>
                     <span class="lang-en">Assessment results are divided into 3 levels:</span>
                 </p>
-                <ul>
-                    <li>
-                        <span class="classification-high">High</span> - 
-                        <span class="lang-th">สูง</span>
-                        <span class="lang-en">High level</span>
-                    </li>
-                    <li>
-                        <span class="classification-mid">Mid</span> - 
-                        <span class="lang-th">กลาง</span>
-                        <span class="lang-en">Medium level</span>
-                    </li>
-                    <li>
-                        <span class="classification-low">Low</span> - 
-                        <span class="lang-th">ต่ำ</span>
-                        <span class="lang-en">Low level</span>
-                    </li>
-                </ul>
+                <div class="level-badges">
+                    <span class="classification-high">High</span>
+                    <span class="classification-mid">Mid</span>
+                    <span class="classification-low">Low</span>
+                </div>
             </div>
             <table class="results-table">
                 <thead>
@@ -146,8 +154,8 @@
     <footer class="container">
         <div class="footer-content">
             <p>
-                <span class="lang-th">© 2025 ระบบประเมินการออกเสียงภาษาอังกฤษสำหรับผู้เรียนชาวไทย</span>
-                <span class="lang-en">© 2025 Thai EFL Learners' English Pronunciation Assessment System</span>
+                <span class="lang-th">© 2025 ระบบประเมินความชัดเจนทางการออกเสียงของผู้เรียนภาษาอังกฤษชาวไทย</span>
+                <span class="lang-en">© 2025 Thai EFL Learners' Prosodic Intelligibility Assessment System</span>
             </p>
             <div class="footer-waves">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" preserveAspectRatio="none">
@@ -162,5 +170,6 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/classifier.js') }}"></script>
     <script src="{{ url_for('static', filename='js/download.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/tabs.js') }}"></script>
 </body>
 </html>

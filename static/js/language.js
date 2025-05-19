@@ -22,6 +22,9 @@ document.addEventListener('DOMContentLoaded', function() {
         langThBtn.classList.add('active');
         langEnBtn.classList.remove('active');
         localStorage.setItem('preferredLanguage', 'th');
+        
+        // ทำให้แน่ใจว่าข้อความในกล่องสรุปถูกอัปเดต
+        updateSummaryLanguage('th');
     });
     
     langEnBtn.addEventListener('click', function() {
@@ -29,5 +32,14 @@ document.addEventListener('DOMContentLoaded', function() {
         langThBtn.classList.remove('active');
         langEnBtn.classList.add('active');
         localStorage.setItem('preferredLanguage', 'en');
+        
+        // ทำให้แน่ใจว่าข้อความในกล่องสรุปถูกอัปเดต
+        updateSummaryLanguage('en');
     });
+    
+    // อัปเดตภาษาที่แสดงสำหรับกล่องสรุป
+    function updateSummaryLanguage(lang) {
+        // ไม่ต้องทำอะไร - การเปลี่ยนคลาส 'en' ที่ body จะดูแลให้
+        // เพราะเราได้เพิ่ม lang-th และ lang-en ให้กับ elements แล้ว
+    }
 });
