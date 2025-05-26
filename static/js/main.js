@@ -129,9 +129,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Create form data
         const formData = new FormData();
-        selectedFiles.forEach(file => {
+        selectedFiles.forEach((file, index) => {
             formData.append('audio_files', file);
+            console.log(`Adding file ${index + 1}: ${file.name}, size: ${file.size} bytes`);
         });
+        
+        console.log('Sending request to /api/classify...');
         
         // ส่งคำขอไปยัง API endpoint
         fetch('/api/classify', {
@@ -139,14 +142,33 @@ document.addEventListener('DOMContentLoaded', function() {
             body: formData
         })
         .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+            
             if (!response.ok) {
-                throw new Error(document.body.classList.contains('en') ? 
-                    'Connection to server failed' : 
-                    'การเชื่อมต่อกับเซิร์ฟเวอร์มีปัญหา');
+                // ลอง parse error response
+                return response.text().then(text => {
+                    console.error('Error response body:', text);
+                    let errorMsg = `HTTP ${response.status}`;
+                    
+                    try {
+                        const errorData = JSON.parse(text);
+                        if (errorData.error) {
+                            errorMsg = errorData.error;
+                        }
+                    } catch (parseError) {
+                        console.error('Could not parse error response as JSON');
+                        errorMsg += `: ${text}`;
+                    }
+                    
+                    throw new Error(errorMsg);
+                });
             }
             return response.json();
         })
         .then(data => {
+            console.log('Success response:', data);
+            
             if (data.error) {
                 throw new Error(data.error);
             }
@@ -159,20 +181,32 @@ document.addEventListener('DOMContentLoaded', function() {
             resultsSection.scrollIntoView({ behavior: 'smooth' });
         })
         .catch(error => {
+            console.error('Fetch error:', error);
             loader.style.display = 'none';
             
-            // หากกำลังทดสอบท้องถิ่นและยังไม่มี API ให้ใช้ข้อมูลจำลอง
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                console.warn(document.body.classList.contains('en') ? 
-                    'Using simulation data because API connection failed' : 
-                    'กำลังใช้ข้อมูลจำลองเนื่องจากไม่สามารถเชื่อมต่อกับ API ได้');
-                
+            // แสดง error message ที่ชัดเจน
+            let errorMsg;
+            if (error.message.includes('HTTP 500')) {
+                errorMsg = document.body.classList.contains('en') ? 
+                    'Server error occurred. Please check server logs for details.' : 
+                    'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์ กรุณาตรวจสอบ log ของเซิร์ฟเวอร์';
+            } else if (error.message.includes('HTTP 503')) {
+                errorMsg = document.body.classList.contains('en') ? 
+                    'Audio analysis system is not available.' : 
+                    'ระบบวิเคราะห์เสียงไม่พร้อมใช้งาน';
+            } else {
+                errorMsg = document.body.classList.contains('en') ? 
+                    `Error: ${error.message}` : 
+                    `เกิดข้อผิดพลาด: ${error.message}`;
+            }
+            
+            showError(errorMsg);
+            
+            // ลองใช้ simulation mode เฉพาะกรณีที่เป็น network error
+            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                console.warn('Network error detected, falling back to simulation mode');
                 displayResults(simulateClassification(selectedFiles));
                 resultsSection.scrollIntoView({ behavior: 'smooth' });
-            } else {
-                showError(document.body.classList.contains('en') ? 
-                    'Error in analysis: ' + error.message : 
-                    'เกิดข้อผิดพลาดในการวิเคราะห์: ' + error.message);
             }
         });
     }

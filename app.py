@@ -12,6 +12,8 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import json
+import logging
+import traceback
 
 # import โมดูลสำหรับประมวลผลเสียง
 import audio_processor
@@ -22,6 +24,16 @@ try:
     load_dotenv()
 except ImportError:
     pass
+
+# ตั้งค่า logging ให้แสดงรายละเอียด
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler('/tmp/flask_debug.log')
+    ]
+)
 
 # สร้างแอปพลิเคชัน Flask
 app = Flask(__name__)
@@ -38,8 +50,16 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024
 
-# สร้าง instance ของ AudioProcessor
-audio_processor = audio_processor.AudioProcessor(models_dir='models')
+# สร้าง instance ของ AudioProcessor พร้อม debug
+try:
+    logging.info("Creating AudioProcessor instance...")
+    audio_processor_instance = audio_processor.AudioProcessor(models_dir='models')
+    logging.info("AudioProcessor created successfully")
+except Exception as e:
+    logging.error(f"Failed to create AudioProcessor: {e}")
+    logging.error(f"AudioProcessor creation traceback: {traceback.format_exc()}")
+    # สร้าง fallback processor
+    audio_processor_instance = None
 
 # สร้าง connection pool สำหรับ MySQL
 # สร้าง connection สำหรับ MySQL/MariaDB
@@ -84,6 +104,13 @@ def login_required(f):
 def allowed_file(filename):
     """ตรวจสอบว่าไฟล์มีนามสกุลที่อนุญาตหรือไม่"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# เพิ่มการจับ error ทั่วไป
+@app.errorhandler(500)
+def internal_error(error):
+    logging.error(f"500 Error: {error}")
+    logging.error(f"Traceback: {traceback.format_exc()}")
+    return jsonify({'error': 'Internal server error occurred'}), 500
 
 # Routes
 @app.route('/')
@@ -194,83 +221,154 @@ def classify_audio():
     API endpoint สำหรับการจำแนกไฟล์เสียง
     รับไฟล์ WAV และส่งกลับผลการจำแนก
     """
-    # ตรวจสอบว่ามีไฟล์ในคำขอหรือไม่
-    if 'audio_files' not in request.files:
-        return jsonify({'error': 'ไม่พบไฟล์เสียงในคำขอ'}), 400
-    
-    files = request.files.getlist('audio_files')
-    
-    # ตรวจสอบจำนวนไฟล์
-    if len(files) > MAX_FILES:
-        return jsonify({'error': f'จำนวนไฟล์เกินขีดจำกัด (สูงสุด {MAX_FILES} ไฟล์)'}), 400
-    
-    results = []
     temp_paths = []
     
     try:
-        # บันทึกไฟล์และประมวลผลแต่ละไฟล์
-        for file in files:
-            if file and allowed_file(file.filename):
-                # สร้างชื่อไฟล์ที่ปลอดภัยและไม่ซ้ำกัน
-                filename = secure_filename(file.filename)
-                unique_filename = f"{uuid.uuid4()}_{filename}"
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
-                
-                # บันทึกไฟล์
-                file.save(file_path)
-                temp_paths.append(file_path)
-                
-                # จำแนกไฟล์เสียง
-                classification_result = audio_processor.classify_audio(file_path)
-                
-                # เพิ่มชื่อไฟล์เดิมเข้าไปในผลลัพธ์
-                classification_result['file_name'] = file.filename
-                
-                # บันทึกลงฐานข้อมูล (ถ้ามีการล็อกอิน)
-                if 'user_id' in session:
-                    conn = get_db_connection()
-                    cursor = conn.cursor()
-                    
-                    # บันทึกข้อมูลไฟล์
-                    cursor.execute(
-                        """
-                        INSERT INTO audio_files (user_id, file_name, file_path, file_size) 
-                        VALUES (%s, %s, %s, %s)
-                        """,
-                        (session['user_id'], filename, file_path, os.path.getsize(file_path))
-                    )
-                    
-                    conn.commit()
-                    file_id = cursor.lastrowid
-                    
-                    # ไม่ต้องแปลงจาก "Medium" เป็น "Mid" อีกต่อไป เพราะโมเดลส่งคืน "Mid" โดยตรง
-                    pronunciation_level = classification_result['predicted_class']
-                    
-                    # บันทึกผลการประเมิน
-                    probability = classification_result['probabilities'].get(pronunciation_level, 0)
-                    
-                    cursor.execute(
-                        """
-                        INSERT INTO assessment_results (audio_file_id, pronunciation_level, probability) 
-                        VALUES (%s, %s, %s)
-                        """,
-                        (file_id, pronunciation_level, probability)
-                    )
-                    
-                    conn.commit()
-                    cursor.close()
-                    conn.close()
-                
-                results.append(classification_result)
-            else:
-                return jsonify({'error': 'ไฟล์บางไฟล์ไม่ใช่ไฟล์ WAV'}), 400
+        logging.info("=== API /api/classify called ===")
+        logging.info(f"Request method: {request.method}")
+        logging.info(f"Request content type: {request.content_type}")
+        logging.info(f"Request files keys: {list(request.files.keys())}")
+        logging.info(f"User ID: {session.get('user_id')}")
+        logging.info(f"Audio processor instance: {audio_processor_instance}")
         
+        # ตรวจสอบว่า AudioProcessor ถูกสร้างสำเร็จหรือไม่
+        if audio_processor_instance is None:
+            logging.error("AudioProcessor instance is None")
+            return jsonify({'error': 'ระบบวิเคราะห์เสียงไม่พร้อมใช้งาน'}), 503
+        
+        # ตรวจสอบว่ามีไฟล์ในคำขอหรือไม่
+        if 'audio_files' not in request.files:
+            logging.error("No audio_files in request.files")
+            return jsonify({'error': 'ไม่พบไฟล์เสียงในคำขอ'}), 400
+        
+        files = request.files.getlist('audio_files')
+        logging.info(f"Received {len(files)} files")
+        
+        # ตรวจสอบจำนวนไฟล์
+        if len(files) > MAX_FILES:
+            logging.error(f"Too many files: {len(files)} > {MAX_FILES}")
+            return jsonify({'error': f'จำนวนไฟล์เกินขีดจำกัด (สูงสุด {MAX_FILES} ไฟล์)'}), 400
+        
+        results = []
+        
+        # บันทึกไฟล์และประมวลผลแต่ละไฟล์
+        for i, file in enumerate(files):
+            logging.info(f"Processing file {i+1}/{len(files)}: {file.filename}")
+            
+            if file and allowed_file(file.filename):
+                try:
+                    # สร้างชื่อไฟล์ที่ปลอดภัยและไม่ซ้ำกัน
+                    filename = secure_filename(file.filename)
+                    unique_filename = f"{uuid.uuid4()}_{filename}"
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                    
+                    logging.info(f"Saving file to: {file_path}")
+                    
+                    # ตรวจสอบว่าโฟลเดอร์ upload มีอยู่หรือไม่
+                    upload_dir = app.config['UPLOAD_FOLDER']
+                    if not os.path.exists(upload_dir):
+                        logging.info(f"Creating upload directory: {upload_dir}")
+                        os.makedirs(upload_dir, exist_ok=True)
+                    
+                    # บันทึกไฟล์
+                    file.save(file_path)
+                    temp_paths.append(file_path)
+                    
+                    file_size = os.path.getsize(file_path)
+                    logging.info(f"File saved successfully, size: {file_size} bytes")
+                    
+                    # ตรวจสอบไฟล์ว่าเป็น WAV จริงๆ หรือไม่
+                    try:
+                        import librosa
+                        y, sr = librosa.load(file_path, sr=None, duration=1.0)  # โหลดแค่ 1 วินาทีเพื่อทดสอบ
+                        logging.info(f"Audio file validation successful - sample rate: {sr}, samples: {len(y)}")
+                    except Exception as audio_error:
+                        logging.error(f"Invalid audio file: {audio_error}")
+                        # ลบไฟล์ที่ไม่ใช่เสียง
+                        if os.path.exists(file_path):
+                            os.remove(file_path)
+                            temp_paths.remove(file_path)
+                        return jsonify({'error': f'ไฟล์ {filename} ไม่ใช่ไฟล์เสียงที่ถูกต้อง'}), 400
+                    
+                    # จำแนกไฟล์เสียง
+                    logging.info(f"Starting audio classification...")
+                    classification_result = audio_processor_instance.classify_audio(file_path)
+                    logging.info(f"Classification completed: {classification_result}")
+                    
+                    # เพิ่มชื่อไฟล์เดิมเข้าไปในผลลัพธ์
+                    classification_result['file_name'] = file.filename
+                    
+                    # บันทึกลงฐานข้อมูล (ถ้ามีการล็อกอิน)
+                    if 'user_id' in session:
+                        try:
+                            logging.info(f"Saving to database...")
+                            conn = get_db_connection()
+                            cursor = conn.cursor()
+                            
+                            # บันทึกข้อมูลไฟล์
+                            cursor.execute(
+                                """
+                                INSERT INTO audio_files (user_id, file_name, file_path, file_size) 
+                                VALUES (%s, %s, %s, %s)
+                                """,
+                                (session['user_id'], filename, file_path, file_size)
+                            )
+                            
+                            conn.commit()
+                            file_id = cursor.lastrowid
+                            logging.info(f"File saved to DB with ID: {file_id}")
+                            
+                            # บันทึกผลการประเมิน
+                            pronunciation_level = classification_result['predicted_class']
+                            probability = classification_result['probabilities'].get(pronunciation_level, 0)
+                            
+                            cursor.execute(
+                                """
+                                INSERT INTO assessment_results (audio_file_id, pronunciation_level, probability) 
+                                VALUES (%s, %s, %s)
+                                """,
+                                (file_id, pronunciation_level, probability)
+                            )
+                            
+                            conn.commit()
+                            logging.info(f"Assessment result saved to DB")
+                            cursor.close()
+                            conn.close()
+                            
+                        except Exception as db_error:
+                            logging.warning(f"Database error (non-critical): {db_error}")
+                            # Database errors are non-critical, continue processing
+                    
+                    results.append(classification_result)
+                    logging.info(f"File {i+1} processed successfully")
+                    
+                except Exception as file_error:
+                    logging.error(f"Error processing file {file.filename}: {file_error}")
+                    logging.error(f"File processing traceback: {traceback.format_exc()}")
+                    return jsonify({'error': f'เกิดข้อผิดพลาดในการประมวลผลไฟล์ {file.filename}: {str(file_error)}'}), 500
+                    
+            else:
+                error_msg = f'ไฟล์ {file.filename} ไม่ใช่ไฟล์ WAV'
+                logging.error(error_msg)
+                return jsonify({'error': error_msg}), 400
+        
+        logging.info(f"All files processed successfully. Returning {len(results)} results")
         return jsonify({'results': results})
     
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
-    
-
+        logging.error(f"CRITICAL ERROR in classify_audio: {str(e)}")
+        logging.error(f"Full traceback: {traceback.format_exc()}")
+        
+        # ลบไฟล์ชั่วคราวที่อาจจะถูกสร้างไว้
+        for temp_path in temp_paths:
+            try:
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+                    logging.info(f"Cleaned up temp file: {temp_path}")
+            except Exception as cleanup_error:
+                logging.error(f"Failed to cleanup {temp_path}: {cleanup_error}")
+        
+        return jsonify({'error': f'เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์: {str(e)}'}), 500
 
 @app.route('/results', methods=['GET'])
 @login_required
