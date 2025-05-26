@@ -43,15 +43,15 @@ document.addEventListener('DOMContentLoaded', function() {
         for (let i = 0; i < tableBody.rows.length; i++) {
             const row = tableBody.rows[i];
             
-            // ตรวจสอบว่ามีเซลล์พอไหม
+            // ตรวจสอบว่ามีเซลล์พอไหม (เปลี่ยนเป็น 3 เซลล์: ชื่อไฟล์, ความน่าจะเป็น, ระดับ)
             if (row.cells.length < 3) continue;
             
-            // ดึงข้อมูลจากคอลัมน์ (ชื่อไฟล์, ระดับการออกเสียง, ความน่าจะเป็น)
+            // ดึงข้อมูลจากคอลัมน์ (ชื่อไฟล์, ความน่าจะเป็น, ระดับการใช้ท่วงทำนองเสียง)
             const filename = row.cells[0].textContent.trim();
             
-            // ดึงระดับ (High, Mid, Low) จาก span ภายในเซลล์
+            // ดึงระดับ (High, Mid, Low) จาก span ภายในเซลล์ที่ 3 (คอลัมน์สุดท้าย)
             let level = '';
-            const levelSpan = row.cells[1].querySelector('span');
+            const levelSpan = row.cells[2].querySelector('span');
             if (levelSpan) {
                 if (levelSpan.classList.contains('classification-high')) {
                     level = 'High';
@@ -66,11 +66,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            // ดึงข้อมูลความน่าจะเป็นจากคอลัมน์ที่ 3
+            // ดึงข้อมูลความน่าจะเป็นจากคอลัมน์ที่ 2 (คอลัมน์กลาง)
             let probabilities = { high: '0%', mid: '0%', low: '0%' };
             
             // ค้นหาแถบความน่าจะเป็นหรือข้อความแสดงเปอร์เซ็นต์
-            const probabilityCell = row.cells[2];
+            const probabilityCell = row.cells[1];
             
             // วิธีที่ 1: ตรวจหาแถบความน่าจะเป็น (probability bar)
             const probabilityBar = probabilityCell.querySelector('.probabilities-bar');
@@ -125,8 +125,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const midPercent = totalCount > 0 ? (midCount / totalCount * 100).toFixed(2) : '0.00';
         const lowPercent = totalCount > 0 ? (lowCount / totalCount * 100).toFixed(2) : '0.00';
         
-        // สร้างข้อมูล CSV พร้อมส่วนหัว
-        let csvContent = 'Filename,Level,High Probability,Mid Probability,Low Probability\n';
+        // สร้างข้อมูล CSV พร้อมส่วนหัว (เปลี่ยนลำดับคอลัมน์)
+        let csvContent = 'Filename,High Probability,Mid Probability,Low Probability,Prosodic Pronunciation Level\n';
         
         // เพิ่มข้อมูลแต่ละไฟล์
         results.forEach(result => {
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const midProb = result.probabilities.mid.replace('%', '');
             const lowProb = result.probabilities.low.replace('%', '');
             
-            csvContent += `${escapedFilename},${result.level},${highProb},${midProb},${lowProb}\n`;
+            csvContent += `${escapedFilename},${highProb},${midProb},${lowProb},${result.level}\n`;
         });
         
         // เพิ่มบรรทัดว่างและสรุปผล
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // สร้างลิงก์สำหรับดาวน์โหลด
         const link = document.createElement('a');
         link.setAttribute('href', url);
-        link.setAttribute('download', 'pronunciation_assessment_results.csv');
+        link.setAttribute('download', 'prosodic_pronunciation_assessment_results.csv');
         link.style.display = 'none';
         
         // เพิ่มลิงก์ลงในหน้าและคลิกเพื่อเริ่มการดาวน์โหลด

@@ -264,17 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const fileNameCell = document.createElement('td');
             fileNameCell.textContent = result.fileName;
             
-            // คอลัมน์การจำแนก
-            const classCell = document.createElement('td');
-            const classSpan = document.createElement('span');
-            
-            // กำหนดชื่อคลาสสำหรับการจัดรูปแบบ CSS
-            const cssClass = displayClass.toLowerCase();
-            classSpan.textContent = displayClass;
-            classSpan.className = `classification-${cssClass}`;
-            classCell.appendChild(classSpan);
-            
-            // คอลัมน์ความน่าจะเป็น
+            // คอลัมน์ความน่าจะเป็น (เปลี่ยนตำแหน่งมาอยู่ตรงกลาง)
             const probCell = document.createElement('td');
             
             // สร้างแถบความน่าจะเป็น
@@ -306,17 +296,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (cls === 'Medium') {
                     displayClass = 'Mid';
                 }
-                label.textContent = `${cls}: ${probability.toFixed(1)}%`;
+                label.textContent = `${displayClass}: ${probability.toFixed(1)}%`;
                 probLabels.appendChild(label);
             });
             
             probCell.appendChild(probBar);
             probCell.appendChild(probLabels);
             
-            // เพิ่มเซลล์ให้กับแถว
+            // คอลัมน์การจำแนก (เปลี่ยนตำแหน่งมาอยู่ท้ายสุด)
+            const classCell = document.createElement('td');
+            classCell.style.textAlign = 'center'; // จัดให้อยู่ตรงกลางคอลัมน์
+            const classSpan = document.createElement('span');
+            
+            // กำหนดชื่อคลาสสำหรับการจัดรูปแบบ CSS
+            const cssClass = displayClass.toLowerCase();
+            classSpan.textContent = displayClass;
+            classSpan.className = `classification-${cssClass}`;
+            classCell.appendChild(classSpan);
+            
+            // เพิ่มเซลล์ให้กับแถว (เปลี่ยนลำดับ: ชื่อไฟล์, ความน่าจะเป็น, ระดับ)
             row.appendChild(fileNameCell);
-            row.appendChild(classCell);
             row.appendChild(probCell);
+            row.appendChild(classCell);
             
             // เพิ่มแถวในตาราง
             resultsTableBody.appendChild(row);
@@ -333,6 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // สร้าง HTML สำหรับสรุปผล (รองรับ 2 ภาษา)
         const isEnglish = document.body.classList.contains('en');
         
+        // แก้ไขป้ายกำกับให้แสดงภาษาที่ถูกต้อง
         const totalLabel = isEnglish ? 'Total Files' : 'จำนวนไฟล์ทั้งหมด';
         const highLabel = isEnglish ? 'High Level' : 'ระดับสูง';
         const midLabel = isEnglish ? 'Mid Level' : 'ระดับกลาง';
@@ -370,19 +372,41 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const statTitle = document.createElement('h4');
-        statTitle.textContent = label;
+        
+        // สร้าง span สำหรับแต่ละภาษาแยกกัน
+        const thSpan = document.createElement('span');
+        thSpan.className = 'lang-th';
+        const enSpan = document.createElement('span');
+        enSpan.className = 'lang-en';
+        
+        // กำหนดข้อความสำหรับแต่ละภาษา
+        if (label === 'Total Files' || label === 'จำนวนไฟล์ทั้งหมด') {
+            thSpan.textContent = 'จำนวนไฟล์ทั้งหมด';
+            enSpan.textContent = 'Total Files';
+        } else if (label === 'High Level' || label === 'ระดับสูง') {
+            thSpan.textContent = 'ระดับสูง';
+            enSpan.textContent = 'High Level';
+        } else if (label === 'Mid Level' || label === 'ระดับกลาง') {
+            thSpan.textContent = 'ระดับกลาง';
+            enSpan.textContent = 'Mid Level';
+        } else if (label === 'Low Level' || label === 'ระดับต่ำ') {
+            thSpan.textContent = 'ระดับต่ำ';
+            enSpan.textContent = 'Low Level';
+        }
+        
+        statTitle.appendChild(thSpan);
+        statTitle.appendChild(enSpan);
         
         const statValue = document.createElement('div');
         statValue.className = 'summary-count';
         statValue.textContent = value;
-        // ไม่ต้องกำหนดสี เพราะจะใช้สีขาวจาก CSS
         
         const statPercent = document.createElement('span');
         statPercent.className = 'summary-percent';
         
         // คำนวณเปอร์เซ็นต์เฉพาะเมื่อไม่ใช่ยอดรวม
         if (label !== 'Total Files' && label !== 'จำนวนไฟล์ทั้งหมด') {
-            const totalCount = parseInt(document.querySelectorAll('.summary-item')[0]?.querySelector('.summary-count')?.textContent) || selectedFiles.length;
+            const totalCount = selectedFiles.length;
             if (totalCount > 0) {
                 statPercent.textContent = `(${(value / totalCount * 100).toFixed(1)}%)`;
             }
@@ -395,50 +419,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return statItem;
     }
     
-    /**
-     * ฟังก์ชั่นเพื่อรับป้ายชื่อภาษาไทย
-     */
-    function getThaiLabel(label) {
-        switch(label) {
-            case 'Total Files':
-            case 'จำนวนไฟล์ทั้งหมด':
-                return 'จำนวนไฟล์ทั้งหมด';
-            case 'High Level':
-            case 'ระดับสูง':
-                return 'ระดับสูง';
-            case 'Mid Level':
-            case 'ระดับกลาง':
-                return 'ระดับกลาง';
-            case 'Low Level':
-            case 'ระดับต่ำ':
-                return 'ระดับต่ำ';
-            default:
-                return label;
-        }
-    }
-
-    /**
-     * ฟังก์ชั่นเพื่อรับป้ายชื่อภาษาอังกฤษ
-     */
-    function getEnglishLabel(label) {
-        switch(label) {
-            case 'Total Files':
-            case 'จำนวนไฟล์ทั้งหมด':
-                return 'Total Files';
-            case 'High Level':
-            case 'ระดับสูง':
-                return 'High Level';
-            case 'Mid Level':
-            case 'ระดับกลาง':
-                return 'Mid Level';
-            case 'Low Level':
-            case 'ระดับต่ำ':
-                return 'Low Level';
-            default:
-                return label;
-        }
-    }
-
     // เริ่มต้นสำหรับรีเซ็ตหน้า UI เมื่อโหลดครั้งแรก
     function initializeUI() {
         // ซ่อนส่วนผลลัพธ์และข้อความแจ้งเตือนเมื่อเริ่มต้น

@@ -21,25 +21,70 @@ class AudioProcessor:
     """
     คลาสสำหรับการประมวลผลไฟล์เสียงและการจำแนกด้วยโมเดล XGBoost ที่เทรนแล้ว
     """
-    def __init__(self, models_dir='Models'):
+    def __init__(self, models_dir=None):
         """
         เริ่มต้นคลาส AudioProcessor
         
         Args:
             models_dir (str): พาธไปยังไดเรกทอรีที่เก็บโมเดลที่เทรนแล้ว
         """
+        # Auto-detect models directory ถ้าไม่ได้ระบุ
+        if models_dir is None:
+            print("DEBUG: Auto-detecting models directory...")
+            possible_dirs = ['models', 'Models', './models', './Models']
+            models_dir = 'models'  # default fallback
+            
+            for dir_name in possible_dirs:
+                if os.path.exists(dir_name):
+                    # ตรวจสอบว่ามีไฟล์โมเดลอยู่ด้วยไหม
+                    model_files = ['xgb_model.pkl', 'scaler.pkl', 'label_encoder.pkl']
+                    if any(os.path.exists(os.path.join(dir_name, f)) for f in model_files):
+                        models_dir = dir_name
+                        print(f"DEBUG: Found models directory with model files: {models_dir}")
+                        break
+        
+        print(f"DEBUG AudioProcessor: Using models_dir='{models_dir}'")
+        
         self.models_dir = models_dir
         # กำหนดค่าเริ่มต้นเป็น None เสมอ
         self.model = None
         self.scaler = None
         self.label_encoder = None
         
+        # ตรวจสอบ current working directory และรายการโฟลเดอร์
+        print(f"DEBUG: Current working directory: {os.getcwd()}")
+        try:
+            all_items = os.listdir('.')
+            dirs = [d for d in all_items if os.path.isdir(d)]
+            files = [f for f in all_items if os.path.isfile(f)]
+            print(f"DEBUG: Available directories: {dirs}")
+            print(f"DEBUG: Available files: {files[:10]}...")  # แสดงแค่ 10 ไฟล์แรก
+        except Exception as e:
+            print(f"DEBUG: Error listing directory contents: {e}")
+        
+        print(f"DEBUG: Models directory path: {os.path.abspath(models_dir)}")
+        print(f"DEBUG: Models directory exists: {os.path.exists(models_dir)}")
+        
         # สร้างโฟลเดอร์โมเดลหากยังไม่มี
         os.makedirs(models_dir, exist_ok=True)
+        print(f"DEBUG: Created models directory (if not exists)")
+        
+        # ตรวจสอบไฟล์ในโฟลเดอร์โมเดล
+        if os.path.exists(models_dir):
+            try:
+                files_in_models = os.listdir(models_dir)
+                print(f"DEBUG: Files in models directory: {files_in_models}")
+            except Exception as e:
+                print(f"DEBUG: Error listing models directory: {e}")
         
         print("กำลังพยายามโหลดโมเดล...")
         # พยายามโหลดโมเดล แต่จัดการกับข้อผิดพลาดอย่างครอบคลุม
         self._attempt_load_model()
+        
+        # ตรวจสอบสถานะหลังจากโหลด
+        print(f"DEBUG: Model loaded: {self.model is not None}")
+        print(f"DEBUG: Scaler loaded: {self.scaler is not None}")
+        print(f"DEBUG: Label encoder loaded: {self.label_encoder is not None}")
     
     def _attempt_load_model(self):
         """ทำการพยายามโหลดโมเดลด้วยวิธีการต่างๆ"""
@@ -141,7 +186,7 @@ class AudioProcessor:
                     # สร้าง label_encoder จำลอง
                     from sklearn.preprocessing import LabelEncoder
                     le = LabelEncoder()
-                    le.classes_ = np.array(['High', 'Medium', 'Low'])
+                    le.classes_ = np.array(['High', 'Mid', 'Low'])  # เปลี่ยนจาก 'Medium' เป็น 'Mid'
                     self.label_encoder = le
                     print("Created simulated label encoder")
         
@@ -160,6 +205,8 @@ class AudioProcessor:
             numpy.ndarray: เวกเตอร์คุณลักษณะที่มีความยาว 64 ตัว
         """
         try:
+            print(f"DEBUG: Extracting features from {file_path}")
+            
             # โหลดไฟล์เสียง
             y, sr = librosa.load(file_path, sr=16000)
             
@@ -167,6 +214,8 @@ class AudioProcessor:
             if len(y) == 0:
                 print(f"Warning: {file_path} is empty.")
                 return np.zeros(64)
+            
+            print(f"DEBUG: Audio loaded - length: {len(y)}, sample_rate: {sr}")
             
             # 1. MFCC คุณลักษณะ
             mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=20)
@@ -255,10 +304,13 @@ class AudioProcessor:
                     # Truncate if too large
                     features = features[:expected_size]
             
+            print(f"DEBUG: Feature extraction completed - feature vector size: {len(features)}")
             return features
             
         except Exception as e:
             print(f"เกิดข้อผิดพลาดในการสกัดคุณลักษณะ: {e}")
+            import traceback
+            traceback.print_exc()
             # ในกรณีที่มีข้อผิดพลาด ให้คืนค่าอาร์เรย์ศูนย์
             return np.zeros(64)  # คืนค่าอาร์เรย์ศูนย์ขนาด 64 ตัว
     
@@ -272,8 +324,11 @@ class AudioProcessor:
         Returns:
             dict: ผลการจำแนก ประกอบด้วยคลาสที่ทำนายและความน่าจะเป็น
         """
+        print(f"DEBUG: Starting audio classification for {file_path}")
+        
         # ตรวจสอบว่าโมเดลถูกโหลดแล้วหรือไม่
         if self.model is None or self.scaler is None or self.label_encoder is None:
+            print("DEBUG: Model components not loaded, using simulation mode")
             # หากยังไม่ได้โหลดโมเดล ให้จำลองผลลัพธ์
             return self._simulate_classification(file_path)
         
@@ -289,6 +344,7 @@ class AudioProcessor:
             # ปรับค่าคุณลักษณะให้เป็นมาตรฐาน
             try:
                 features_scaled = self.scaler.transform([features])
+                print(f"DEBUG: Features scaled successfully")
             except Exception as e:
                 print(f"Error scaling features: {e}. Using raw features.")
                 features_scaled = [features]
@@ -303,16 +359,22 @@ class AudioProcessor:
                 class_names = self.label_encoder.classes_
                 prob_dict = {class_name: float(prob) for class_name, prob in zip(class_names, class_probabilities)}
                 
+                print(f"DEBUG: Prediction completed - class: {predicted_class}, probabilities: {prob_dict}")
+                
                 return {
                     'predicted_class': predicted_class,
                     'probabilities': prob_dict
                 }
             except Exception as e:
                 print(f"Error during prediction: {e}")
+                import traceback
+                traceback.print_exc()
                 return self._simulate_classification(file_path)
                 
         except Exception as e:
             print(f"เกิดข้อผิดพลาดในการจำแนก: {e}")
+            import traceback
+            traceback.print_exc()
             # ในกรณีที่มีข้อผิดพลาด ให้จำลองผลลัพธ์
             return self._simulate_classification(file_path)
     
@@ -320,6 +382,8 @@ class AudioProcessor:
         """
         จำลองผลการจำแนกในกรณีที่ไม่มีโมเดลหรือเกิดข้อผิดพลาด
         """
+        print(f"DEBUG: Using simulation mode for {file_path}")
+        
         # ใช้ชื่อไฟล์เพื่อจำลองคลาสแบบมีหลักการ
         filename = os.path.basename(file_path).lower()
         
@@ -348,6 +412,8 @@ class AudioProcessor:
                 predicted_class = 'Mid'  # เปลี่ยนจาก 'Medium' เป็น 'Mid'
             else:
                 predicted_class = 'Low'
+        
+        print(f"DEBUG: Simulation result - class: {predicted_class}, probabilities: {probs}")
         
         return {
             'predicted_class': predicted_class,

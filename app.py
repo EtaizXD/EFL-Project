@@ -39,7 +39,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024
 
 # สร้าง instance ของ AudioProcessor
-audio_processor = audio_processor.AudioProcessor()
+audio_processor = audio_processor.AudioProcessor(models_dir='models')
 
 # สร้าง connection pool สำหรับ MySQL
 # สร้าง connection สำหรับ MySQL/MariaDB

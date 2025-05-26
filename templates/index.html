@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบประเมินความชัดเจนทางการออกเสียงของผู้เรียนภาษาอังกฤษชาวไทย</title>
+    <title>ระบบประเมินการใช้ท่วงทำนองเสียงภาษาอังกฤษของผู้เรียนชาวไทย</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -22,7 +22,7 @@
                 </ul>
             </nav>
             <h1 class="single-line">
-                <span class="lang-th">ระบบประเมินความชัดเจนทางการออกเสียงของผู้เรียนภาษาอังกฤษชาวไทย</span>
+                <span class="lang-th">ระบบประเมินการใช้ท่วงทำนองเสียงภาษาอังกฤษของผู้เรียนชาวไทย</span>
                 <span class="lang-en">Thai EFL Learners' Prosodic Intelligibility Assessment System</span>
             </h1>
             <p class="header-subtitle">
@@ -39,8 +39,8 @@
                 <span class="lang-en">Upload Audio Files</span>
             </h2>
             <p class="upload-instruction">
-                <span class="lang-th">อัพโหลดไฟล์เสียงภาษาอังกฤษ 1-10 ไฟล์ เพื่อประเมินระดับการออกเสียง</span>
-                <span class="lang-en">Upload 1-10 English audio files to assess pronunciation level</span>
+                <span class="lang-th">อัพโหลดไฟล์เสียงภาษาอังกฤษ 1-10 ไฟล์ เพื่อประเมินระดับการใช้ท่วงทำนองเสียง</span>
+                <span class="lang-en">Upload 1-10 English audio files to assess prosodic pronunciation levels</span>
             </p>
             
             <!-- เพิ่ม Tab สำหรับเลือกระดับชั้น -->
@@ -82,8 +82,8 @@
             </p>
             
             <button class="submit-button" id="submitButton" disabled>
-                <span class="lang-th">วิเคราะห์การออกเสียง</span>
-                <span class="lang-en">Analyze Pronunciation</span>
+                <span class="lang-th">วิเคราะห์การใช้ท่วงทำนองเสียง</span>
+                <span class="lang-en">Analyze Prosodic Pronunciation</span>
             </button>
         </div>
         
@@ -99,31 +99,34 @@
         
         <div class="results-section" id="resultsSection">
             <h2>
-                <span class="lang-th">ผลการประเมินการออกเสียง</span>
-                <span class="lang-en">Pronunciation Assessment Results</span>
+                <span class="lang-th">ผลการประเมินการใช้ท่วงทำนองเสียง</span>
+                <span class="lang-en">Prosodic Pronunciation Assessment Results</span>
             </h2>
             <div class="results-explanation">
                 <p class="purple-text">
-                    <span class="lang-th">ผลการประเมินแบ่งเป็น 3 ระดับ:</span>
-                    <span class="lang-en">Assessment results are divided into 3 levels:</span>
+                    <span class="lang-th">ผลการประเมินการใช้ท่วงทำนองเสียงแบ่งเป็น 3 ระดับ: 
+                        <span class="classification-high">High</span>
+                        <span class="classification-mid">Mid</span>
+                        <span class="classification-low">Low</span>
+                    </span>
+                    <span class="lang-en">Prosodic Pronunciation Assessment results are divided into 3 levels: 
+                        <span class="classification-high">High</span>
+                        <span class="classification-mid">Mid</span>
+                        <span class="classification-low">Low</span>
+                    </span>
                 </p>
-                <div class="level-badges">
-                    <span class="classification-high">High</span>
-                    <span class="classification-mid">Mid</span>
-                    <span class="classification-low">Low</span>
-                </div>
             </div>
             <table class="results-table">
                 <thead>
                     <tr class="lang-th">
                         <th>ชื่อไฟล์</th>
-                        <th>ระดับการออกเสียง</th>
                         <th>ความน่าจะเป็น</th>
+                        <th>ระดับการใช้ท่วงทำนองเสียง</th>
                     </tr>
                     <tr class="lang-en">
                         <th>Filename</th>
-                        <th>Pronunciation Level</th>
                         <th>Probability</th>
+                        <th>Prosodic Pronunciation Level</th>
                     </tr>
                 </thead>
                 <tbody id="resultsTableBody">
@@ -154,7 +157,7 @@
     <footer class="container">
         <div class="footer-content">
             <p>
-                <span class="lang-th">© 2025 ระบบประเมินความชัดเจนทางการออกเสียงของผู้เรียนภาษาอังกฤษชาวไทย</span>
+                <span class="lang-th">© 2025 ระบบประเมินการใช้ท่วงทำนองเสียงภาษาอังกฤษของผู้เรียนชาวไทย</span>
                 <span class="lang-en">© 2025 Thai EFL Learners' Prosodic Intelligibility Assessment System</span>
             </p>
             <div class="footer-waves">
